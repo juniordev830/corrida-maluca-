@@ -157,9 +157,9 @@
 <div id="controls">Setas ← → (ou A/D) para mudar de pista &nbsp;|&nbsp; Espaço para pausar</div>
 
 <div id="touchControls">
-  <button id="btnLeft">◀</button>
-  <button id="btnPause">⏸</button>
-  <button id="btnRight">▶</button>
+  <button id="btnLeft" aria-label="Mover para a esquerda">◀</button>
+  <button id="btnPause" aria-label="Pausar ou continuar">⏸</button>
+  <button id="btnRight" aria-label="Mover para a direita">▶</button>
 </div>
 
 <script>
@@ -195,7 +195,7 @@ let stars = [];
 let particles = [];
 let roadLines = [];
 let score = 0;
-let highScore = parseInt(localStorage_get('corridaMalucaHighScore')) || 0;
+let highScore = Number.parseInt(localStorage_get('corridaMalucaHighScore'), 10) || 0;
 let speed = 4;
 let baseSpeed = 4;
 let running = false;
@@ -205,11 +205,16 @@ let frame = 0;
 let spawnTimer = 0;
 let starTimer = 0;
 
-// localStorage fallback-safe wrapper (artifact sandbox has no localStorage,
-// so we just keep it in memory instead)
+// Mantém o jogo funcional mesmo quando o navegador bloqueia o armazenamento.
 let memoryStore = {};
-function localStorage_get(key) { return memoryStore[key] || 0; }
-function localStorage_set(key, val) { memoryStore[key] = val; }
+function localStorage_get(key) {
+  try { return window.localStorage.getItem(key) ?? memoryStore[key] ?? 0; }
+  catch { return memoryStore[key] ?? 0; }
+}
+function localStorage_set(key, val) {
+  memoryStore[key] = val;
+  try { window.localStorage.setItem(key, String(val)); } catch { /* fallback em memória */ }
+}
 
 document.getElementById('highScore').textContent = highScore;
 
