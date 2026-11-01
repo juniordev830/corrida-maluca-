@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -20,9 +23,9 @@ jobs:
           import re
           from pathlib import Path
           html = Path("jogo-corrida.html").read_text(encoding="utf-8")
-          scripts = re.findall(r"<script\b[^>]*>(.*?)</script>", html, re.I | re.S)
+          scripts = re.findall(r"<script\\b[^>]*>(.*?)</script>", html, re.I | re.S)
           if not scripts:
               raise SystemExit("Nenhum bloco JavaScript encontrado")
-          Path("/tmp/game-inline.js").write_text("\n".join(scripts), encoding="utf-8")
+          Path("/tmp/game-inline.js").write_text("\\n".join(scripts), encoding="utf-8")
           PY
           node --check /tmp/game-inline.js
