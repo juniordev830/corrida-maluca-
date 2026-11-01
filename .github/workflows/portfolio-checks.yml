@@ -1,0 +1,18 @@
+name: Portfolio checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  static-site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify main web assets
+        run: |
+          test -n "$(find . -maxdepth 3 -type f -name '*.html' -print -quit)"
+          echo "Arquivos HTML encontrados."
