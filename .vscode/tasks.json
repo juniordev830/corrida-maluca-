@@ -15,7 +15,8 @@
       "command": "git",
       "args": [
         "status",
-        "--short --branch"
+        "--short",
+        "--branch"
       ],
       "problemMatcher": []
     },
@@ -68,16 +69,6 @@
         "Git: adicionar alterações",
         "Git: criar commit",
         "Git: enviar para GitHub (push)"
-      ],
-      "problemMatcher": []
-    },
-    {
-      "label": "JavaScript: verificar sintaxe",
-      "type": "process",
-      "command": "node",
-      "args": [
-        "--check",
-        "index.js"
       ],
       "problemMatcher": []
     }
