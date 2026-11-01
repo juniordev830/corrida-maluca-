@@ -31,6 +31,8 @@ Acesse `http://localhost:8000/jogo-corrida.html`.
 - CSS3
 - JavaScript sem framework externo
 
+Para detalhes dos controles, pontuação e personalização, consulte o [Guia do Jogo](docs/GUIA_DO_JOGO.md).
+
 ## Arquivos
 
 - `jogo-corrida.html`: jogo e interface.
