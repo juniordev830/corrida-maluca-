@@ -36,7 +36,9 @@ Para detalhes adicionais de controles, pontuação e personalização, consulte 
 
 ## Estrutura
 
-- `jogo-corrida.html`: jogo, estilos, interface e lógica de execução.
+- `jogo-corrida.html`: estrutura da interface e elementos do jogo.
+- `styles.css`: estilos responsivos da interface.
+- `game.js`: lógica, renderização, controles e estado da partida.
 - `docs/GUIA_DO_JOGO.md`: guia complementar.
 - `README.md`: documentação principal.
 
