@@ -17,15 +17,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Check inline JavaScript syntax
+      - name: Validate actual game source and regression tests
         run: |
-          python - <<'PY'
-          import re
-          from pathlib import Path
-          html = Path("jogo-corrida.html").read_text(encoding="utf-8")
-          scripts = re.findall(r"<script\b[^>]*>(.*?)</script>", html, re.I | re.S)
-          if not scripts:
-              raise SystemExit("Nenhum bloco JavaScript encontrado")
-          Path("/tmp/game-inline.js").write_text("\n".join(scripts), encoding="utf-8")
-          PY
-          node --check /tmp/game-inline.js
+          node --check game.js
+          node --test tests/*.test.js
