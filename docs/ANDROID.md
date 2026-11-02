@@ -14,29 +14,29 @@ O Capacitor usa o jogo existente (HTML, CSS e JavaScript) em uma WebView Android
 
 Na pasta do repositório, execute:
 
-\`\`\`bash
+```bash
 npm install
 npm run check
 npm run build:web
 npm run android:add
 npm run android:open
-\`\`\`
+```
 
-O comando \`android:add\` deve ser executado **uma vez**: ele gera a pasta
-\`android/\`, que será aberta no Android Studio. Se a pasta já existir, **não**
-rode \`android:add\` novamente.
+O comando `android:add` deve ser executado **uma vez**: ele gera a pasta
+`android/`, que será aberta no Android Studio. Se a pasta já existir, **não**
+rode `android:add` novamente.
 
 No Android Studio, aguarde a sincronização do Gradle, selecione um emulador
 Android configurado e clique em **Run** para instalar e testar o jogo.
 
 ## Após alterar HTML, CSS ou JavaScript
 
-\`\`\`bash
+```bash
 npm run android:sync
 npm run android:open
-\`\`\`
+```
 
-O comando de sincronização gera novamente \`www/\` e atualiza os recursos
+O comando de sincronização gera novamente `www/` e atualiza os recursos
 do projeto Android. Execute Run novamente no Android Studio.
 
 ## Como o jogo funciona
