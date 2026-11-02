@@ -49,3 +49,14 @@ Para detalhes adicionais de controles, pontuação e personalização, consulte 
 - Separar a lógica JavaScript do HTML para facilitar manutenção.
 
 Projeto experimental em desenvolvimento.
+
+
+## Android — primeira etapa
+
+A versão Android está em desenvolvimento na branch \`feature/android-corrida-colorida\`.
+O jogo continua executável no navegador; a nova fase inclui cones, barreiras
+e buracos, além de um layout mais confortável em celulares.
+
+O projeto usa Capacitor 8 para reaproveitar HTML, CSS e JavaScript como app Android.
+Consulte [o passo a passo do Android Studio](docs/ANDROID.md).
+Ainda não foi gerado um APK/AAB nem publicado na Play Store.
