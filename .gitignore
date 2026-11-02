@@ -18,3 +18,16 @@ coverage/
 .idea/
 .DS_Store
 Thumbs.db
+
+
+# Saídas locais do Capacitor / Android Studio
+www/
+android/.gradle/
+android/local.properties
+android/.idea/
+android/build/
+android/app/build/
+*.apk
+*.aab
+*.keystore
+*.jks
