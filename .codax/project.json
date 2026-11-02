@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "project_kind": "Jogo web Canvas / JavaScript",
+  "entry_points": [
+    "game.js",
+    "jogo-corrida.html"
+  ],
+  "test_commands": [
+    "node --check game.js",
+    "node --test tests/*.test.js"
+  ],
+  "review_focus": [
+    "Colisões, física e variação da taxa de quadros",
+    "Persistência e reinício do placar"
+  ]
+}
