@@ -45,6 +45,8 @@ do projeto Android. Execute Run novamente no Android Studio.
 - Obstáculos: carros, cones, barreiras e buracos.
 - Estrelas concedem pontos; o recorde é mantido no armazenamento local.
 - Pausa e reinício continuam funcionando.
+- Ao trocar de aplicativo ou ocultar a página, a corrida pausa automaticamente;
+  toque em **Continuar** para retomá-la.
 
 ## Preparação para Play Store
 

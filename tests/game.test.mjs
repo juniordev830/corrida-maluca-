@@ -30,6 +30,7 @@ function createGame(randomValues = [0.5]) {
     getContext: () => ctx
   });
   const doc = {
+    hidden: false,
     getElementById: id => id === 'canvas' ? canvas : element(id),
     addEventListener(type, callback) {
       listeners.set('document:' + type, callback);
@@ -45,10 +46,15 @@ function createGame(randomValues = [0.5]) {
     requestAnimationFrame() {},
     setTimeout() {}
   };
-  runInNewContext(source + '\nglobalThis.__game = { spawnObstacle, startGame, draw, rectsOverlap, getObstacles: () => obstacles, getLane: () => player.lane };', sandbox);
+  runInNewContext(source + '\nglobalThis.__game = { spawnObstacle, startGame, draw, loop, rectsOverlap, getObstacles: () => obstacles, getLane: () => player.lane, getFrame: () => frame, isPaused: () => paused };', sandbox);
   return {
     game: sandbox.__game,
-    click: id => listeners.get(id + ':click')()
+    click: id => listeners.get(id + ':click')(),
+    setHidden(hidden) {
+      doc.hidden = hidden;
+      listeners.get('document:visibilitychange')();
+    },
+    element
   };
 }
 
@@ -86,4 +92,35 @@ test('colisão considera tamanho real do obstáculo', () => {
   const { game } = createGame();
   assert.equal(game.rectsOverlap({ x: 10, y: 10, w: 20, h: 20 }, { x: 25, y: 25, w: 20, h: 20 }), true);
   assert.equal(game.rectsOverlap({ x: 10, y: 10, w: 20, h: 20 }, { x: 30, y: 10, w: 20, h: 20 }), false);
+});
+
+test('pausa ao ocultar e aguarda o jogador continuar sem avançar o tempo em segundo plano', () => {
+  const { game, click, setHidden, element } = createGame();
+  game.startGame();
+  game.loop(0);
+  game.loop(50);
+  const beforePause = game.getFrame();
+  assert.ok(beforePause > 0);
+
+  setHidden(true);
+  assert.equal(game.isPaused(), true);
+  assert.equal(element('overlayTitle').textContent, 'Pausado');
+  game.loop(10000);
+  assert.equal(game.getFrame(), beforePause);
+
+  setHidden(false);
+  assert.equal(game.isPaused(), true);
+  click('startBtn');
+  assert.equal(game.isPaused(), false);
+  game.loop(20000);
+  assert.equal(game.getFrame(), beforePause);
+  game.loop(20017);
+  assert.equal(game.getFrame(), beforePause + 1);
+});
+
+test('ocultar a página antes de iniciar não pausa ou inicia uma partida', () => {
+  const { game, setHidden } = createGame();
+  setHidden(true);
+  assert.equal(game.isPaused(), false);
+  assert.equal(game.getFrame(), 0);
 });

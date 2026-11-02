@@ -317,6 +317,10 @@ function drawStar(cx, cy, spikes, outerR, innerR) {
 const STEP_MS = 1000 / 60;
 let previousTimestamp = null;
 let accumulatedMs = 0;
+function resetClock() {
+  previousTimestamp = null;
+  accumulatedMs = 0;
+}
 function loop(timestamp) {
   if (Number.isFinite(timestamp)) {
     if (previousTimestamp !== null) accumulatedMs += Math.min(100, Math.max(0, timestamp - previousTimestamp));
@@ -331,6 +335,7 @@ function loop(timestamp) {
 }
 
 function startGame() {
+  resetClock();
   obstacles = [];
   stars = [];
   particles = [];
@@ -369,6 +374,7 @@ function endGame() {
 function togglePause() {
   if (!running || gameOverFlag) return;
   paused = !paused;
+  resetClock();
   document.getElementById('overlay').style.display = paused ? 'flex' : 'none';
   if (paused) {
     document.getElementById('overlayTitle').textContent = 'Pausado';
@@ -380,6 +386,7 @@ function togglePause() {
 document.getElementById('startBtn').addEventListener('click', () => {
   if (paused) {
     paused = false;
+    resetClock();
     document.getElementById('overlay').style.display = 'none';
     document.getElementById('startBtn').textContent = 'Continuar';
   } else {
@@ -413,6 +420,11 @@ document.getElementById('btnRight').addEventListener('click', () => {
   if (running && !paused && !gameOverFlag) player.lane = Math.min(LANES - 1, player.lane + 1);
 });
 document.getElementById('btnPause').addEventListener('click', togglePause);
+
+// No celular, preserve a partida quando o jogador muda de aplicativo ou aba.
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && running && !paused && !gameOverFlag) togglePause();
+});
 
 let touchStartX = null;
 canvas.addEventListener('touchstart', (e) => {
