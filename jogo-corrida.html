@@ -489,22 +489,29 @@ document.getElementById('startBtn').addEventListener('click', () => {
 });
 
 document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') {
+    e.preventDefault();
+    if (running && !gameOverFlag) togglePause();
+    return;
+  }
+
+  // Ignore steering while the start/game-over overlay is visible or the game is paused.
+  if (!running || paused || gameOverFlag) return;
+
   if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
+    e.preventDefault();
     player.lane = Math.max(0, player.lane - 1);
   } else if (e.code === 'ArrowRight' || e.code === 'KeyD') {
-    player.lane = Math.min(LANES - 1, player.lane + 1);
-  } else if (e.code === 'Space') {
     e.preventDefault();
-    if (!running && !gameOverFlag) return;
-    togglePause();
+    player.lane = Math.min(LANES - 1, player.lane + 1);
   }
 });
 
 document.getElementById('btnLeft').addEventListener('click', () => {
-  player.lane = Math.max(0, player.lane - 1);
+  if (running && !paused && !gameOverFlag) player.lane = Math.max(0, player.lane - 1);
 });
 document.getElementById('btnRight').addEventListener('click', () => {
-  player.lane = Math.min(LANES - 1, player.lane + 1);
+  if (running && !paused && !gameOverFlag) player.lane = Math.min(LANES - 1, player.lane + 1);
 });
 document.getElementById('btnPause').addEventListener('click', togglePause);
 
@@ -515,9 +522,10 @@ canvas.addEventListener('touchstart', (e) => {
 canvas.addEventListener('touchend', (e) => {
   if (touchStartX === null) return;
   const dx = e.changedTouches[0].clientX - touchStartX;
+  touchStartX = null;
+  if (!running || paused || gameOverFlag) return;
   if (dx > 30) player.lane = Math.min(LANES - 1, player.lane + 1);
   else if (dx < -30) player.lane = Math.max(0, player.lane - 1);
-  touchStartX = null;
 });
 
 draw();
