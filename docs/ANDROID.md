@@ -29,6 +29,14 @@ rode `android:add` novamente.
 No Android Studio, aguarde a sincronização do Gradle, selecione um emulador
 Android configurado e clique em **Run** para instalar e testar o jogo.
 
+## APK de teste no GitHub
+
+O workflow **Corrida Maluca CI** gera um APK de depuração. No GitHub, abra
+**Actions**, selecione uma execução concluída com sucesso e baixe o artefato
+`corrida-maluca-debug`. Extraia o arquivo ZIP para obter o APK. O artefato
+fica disponível por sete dias. Este APK serve para testes e não é uma versão
+de lançamento para a Play Store.
+
 ## Após alterar HTML, CSS ou JavaScript
 
 ```bash

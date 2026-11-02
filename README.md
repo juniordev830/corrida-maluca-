@@ -1,6 +1,6 @@
 # Corrida Maluca
 
-Jogo de corrida para navegador desenvolvido com HTML5 Canvas, CSS e JavaScript puro. O jogo está concentrado no arquivo `jogo-corrida.html`.
+Jogo de corrida para navegador desenvolvido com HTML5 Canvas, CSS e JavaScript puro, com adaptação Android em desenvolvimento.
 
 ## Como jogar
 
@@ -44,9 +44,9 @@ Para detalhes adicionais de controles, pontuação e personalização, consulte 
 
 ## Próximas melhorias
 
-- Adicionar testes automatizados de jogabilidade.
-- Melhorar acessibilidade e feedback para diferentes dispositivos.
-- Separar a lógica JavaScript do HTML para facilitar manutenção.
+- Testar a experiência em aparelhos e emuladores Android.
+- Melhorar a acessibilidade e o feedback para diferentes dispositivos.
+- Preparar ícone, identidade visual e versão de lançamento.
 
 Projeto experimental em desenvolvimento.
 
@@ -62,4 +62,5 @@ seu próprio recorde no dispositivo. O recorde anterior permanece no modo Normal
 
 O projeto usa Capacitor 8 para reaproveitar HTML, CSS e JavaScript como app Android.
 Consulte [o passo a passo do Android Studio](docs/ANDROID.md).
-Ainda não foi gerado um APK/AAB nem publicado na Play Store.
+O GitHub Actions gera um APK de depuração para testes; ele ainda não foi
+validado em aparelhos reais. Não há AAB de lançamento nem publicação na Play Store.
