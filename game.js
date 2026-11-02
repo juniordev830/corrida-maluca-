@@ -260,8 +260,19 @@ function drawStar(cx, cy, spikes, outerR, innerR) {
   ctx.closePath();
 }
 
-function loop() {
-  update();
+// Fixed 60 Hz simulation, independent of display refresh rate.
+const STEP_MS = 1000 / 60;
+let previousTimestamp = null;
+let accumulatedMs = 0;
+function loop(timestamp) {
+  if (Number.isFinite(timestamp)) {
+    if (previousTimestamp !== null) accumulatedMs += Math.min(100, Math.max(0, timestamp - previousTimestamp));
+    previousTimestamp = timestamp;
+    while (accumulatedMs + 1e-7 >= STEP_MS) {
+      update();
+      accumulatedMs -= STEP_MS;
+    }
+  }
   draw();
   requestAnimationFrame(loop);
 }
