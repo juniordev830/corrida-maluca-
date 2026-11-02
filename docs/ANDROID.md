@@ -44,6 +44,8 @@ do projeto Android. Execute Run novamente no Android Studio.
 - Controles por toque: botões esquerda/direita e gesto lateral.
 - Obstáculos: carros, cones, barreiras e buracos.
 - Estrelas concedem pontos; o recorde é mantido no armazenamento local.
+- Escolha entre os modos Tranquilo, Normal e Desafio antes de iniciar.
+  Cada modo tem seu próprio recorde; o recorde anterior continua no Normal.
 - Pausa e reinício continuam funcionando.
 - Ao trocar de aplicativo ou ocultar a página, a corrida pausa automaticamente;
   toque em **Continuar** para retomá-la.

@@ -31,7 +31,13 @@ let particles = [];
 let roadLines = [];
 let score = 0;
 let memoryStore = {};
-let highScore = Number.parseInt(localStorage_get('corridaMalucaHighScore'), 10) || 0;
+const DIFFICULTIES = {
+  tranquilo: { baseSpeed: 3, spawnInterval: 70, minInterval: 35 },
+  normal: { baseSpeed: 4, spawnInterval: 55, minInterval: 26 },
+  desafio: { baseSpeed: 5, spawnInterval: 46, minInterval: 21 }
+};
+let difficulty = 'normal';
+let highScore = readHighScore(difficulty);
 let speed = 4;
 let baseSpeed = 4;
 let running = false;
@@ -43,15 +49,34 @@ let starTimer = 0;
 
 // Mantém o jogo funcional mesmo quando o navegador bloqueia o armazenamento.
 function localStorage_get(key) {
-  try { return window.localStorage.getItem(key) ?? memoryStore[key] ?? 0; }
-  catch { return memoryStore[key] ?? 0; }
+  if (Object.prototype.hasOwnProperty.call(memoryStore, key)) return memoryStore[key];
+  try { return window.localStorage.getItem(key) ?? 0; }
+  catch { return 0; }
 }
 function localStorage_set(key, val) {
   memoryStore[key] = val;
   try { window.localStorage.setItem(key, String(val)); } catch { /* fallback em memória */ }
 }
 
+function highScoreKey(mode) {
+  // O recorde já salvo antes dos níveis permanece associado ao modo normal.
+  return mode === 'normal' ? 'corridaMalucaHighScore' : 'corridaMalucaHighScore:' + mode;
+}
+function readHighScore(mode) {
+  const value = Number.parseInt(localStorage_get(highScoreKey(mode)), 10);
+  return Number.isSafeInteger(value) && value >= 0 ? value : 0;
+}
+function selectedDifficulty() {
+  const selected = document.getElementById('difficulty').value;
+  return Object.prototype.hasOwnProperty.call(DIFFICULTIES, selected) ? selected : 'normal';
+}
+
 document.getElementById('highScore').textContent = highScore;
+document.getElementById('difficulty').addEventListener('change', () => {
+  if (running) return;
+  highScore = readHighScore(selectedDifficulty());
+  document.getElementById('highScore').textContent = highScore;
+});
 
 for (let i = 0; i < 8; i++) {
   roadLines.push({ y: i * 90 });
@@ -191,7 +216,8 @@ function update() {
   });
 
   spawnTimer++;
-  const spawnInterval = Math.max(55 - Math.floor(score / 8), 26);
+  const settings = DIFFICULTIES[difficulty];
+  const spawnInterval = Math.max(settings.spawnInterval - Math.floor(score / 8), settings.minInterval);
   if (spawnTimer > spawnInterval) {
     spawnTimer = 0;
     spawnObstacle();
@@ -336,6 +362,11 @@ function loop(timestamp) {
 
 function startGame() {
   resetClock();
+  difficulty = selectedDifficulty();
+  baseSpeed = DIFFICULTIES[difficulty].baseSpeed;
+  highScore = readHighScore(difficulty);
+  document.getElementById('highScore').textContent = highScore;
+  document.getElementById('difficultyPicker').hidden = false;
   obstacles = [];
   stars = [];
   particles = [];
@@ -360,13 +391,14 @@ function endGame() {
   const finalScore = Math.floor(score);
   if (finalScore > highScore) {
     highScore = finalScore;
-    localStorage_set('corridaMalucaHighScore', highScore);
+    localStorage_set(highScoreKey(difficulty), highScore);
     document.getElementById('highScore').textContent = highScore;
   }
   setTimeout(() => {
     document.getElementById('overlayTitle').textContent = 'Bateu! 💥';
     document.getElementById('overlayText').textContent = 'Pontuação final: ' + finalScore + '. Toque em jogar de novo para tentar bater o recorde!';
     document.getElementById('startBtn').textContent = 'Jogar de novo';
+    document.getElementById('difficultyPicker').hidden = false;
     document.getElementById('overlay').style.display = 'flex';
   }, 400);
 }
@@ -375,6 +407,7 @@ function togglePause() {
   if (!running || gameOverFlag) return;
   paused = !paused;
   resetClock();
+  document.getElementById('difficultyPicker').hidden = paused;
   document.getElementById('overlay').style.display = paused ? 'flex' : 'none';
   if (paused) {
     document.getElementById('overlayTitle').textContent = 'Pausado';
@@ -396,8 +429,11 @@ document.getElementById('startBtn').addEventListener('click', () => {
 
 document.addEventListener('keydown', (e) => {
   if (e.code === 'Space') {
-    e.preventDefault();
-    if (running && !gameOverFlag) togglePause();
+    const interactive = ['BUTTON', 'SELECT', 'INPUT', 'TEXTAREA'].includes(e.target?.tagName);
+    if (running && !gameOverFlag && !interactive) {
+      e.preventDefault();
+      togglePause();
+    }
     return;
   }
 

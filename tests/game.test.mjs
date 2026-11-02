@@ -5,7 +5,7 @@ import { runInNewContext } from 'node:vm';
 
 const source = readFileSync(new URL('../game.js', import.meta.url), 'utf8');
 
-function createGame(randomValues = [0.5]) {
+function createGame(randomValues = [0.5], storage = new Map(), failWrites = false) {
   const listeners = new Map();
   const elements = new Map();
   function element(id) {
@@ -13,6 +13,7 @@ function createGame(randomValues = [0.5]) {
       elements.set(id, {
         style: {},
         textContent: '',
+        value: id === 'difficulty' ? 'normal' : '',
         addEventListener(type, callback) {
           listeners.set(id + ':' + type, callback);
         }
@@ -41,15 +42,23 @@ function createGame(randomValues = [0.5]) {
   math.random = () => randomValues[index++ % randomValues.length];
   const sandbox = {
     document: doc,
-    window: { localStorage: { getItem: () => null, setItem() {} } },
+    window: { localStorage: {
+      getItem: key => storage.get(key) ?? null,
+      setItem: (key, value) => {
+        if (failWrites) throw new Error('storage unavailable');
+        storage.set(key, value);
+      }
+    } },
     Math: math,
     requestAnimationFrame() {},
     setTimeout() {}
   };
-  runInNewContext(source + '\nglobalThis.__game = { spawnObstacle, startGame, draw, loop, rectsOverlap, getObstacles: () => obstacles, getLane: () => player.lane, getFrame: () => frame, isPaused: () => paused };', sandbox);
+  runInNewContext(source + '\nglobalThis.__game = { spawnObstacle, startGame, endGame, update, draw, loop, rectsOverlap, getObstacles: () => obstacles, getLane: () => player.lane, getFrame: () => frame, isPaused: () => paused, getSpeed: () => baseSpeed, setScore: value => { score = value; } };', sandbox);
   return {
     game: sandbox.__game,
     click: id => listeners.get(id + ':click')(),
+    change: id => listeners.get(id + ':change')(),
+    keydown: event => listeners.get('document:keydown')(event),
     setHidden(hidden) {
       doc.hidden = hidden;
       listeners.get('document:visibilitychange')();
@@ -123,4 +132,61 @@ test('ocultar a página antes de iniciar não pausa ou inicia uma partida', () =
   setHidden(true);
   assert.equal(game.isPaused(), false);
   assert.equal(game.getFrame(), 0);
+});
+
+test('níveis alteram a velocidade e a frequência de obstáculos', () => {
+  const easy = createGame();
+  easy.element('difficulty').value = 'tranquilo';
+  easy.game.startGame();
+  const hard = createGame();
+  hard.element('difficulty').value = 'desafio';
+  hard.game.startGame();
+  assert.equal(easy.game.getSpeed(), 3);
+  assert.equal(hard.game.getSpeed(), 5);
+  for (let i = 0; i < 50; i++) {
+    easy.game.update();
+    hard.game.update();
+  }
+  assert.equal(easy.game.getObstacles().length, 0);
+  assert.equal(hard.game.getObstacles().length, 1);
+});
+
+test('recordes são separados por nível e preservam o recorde antigo do normal', () => {
+  const storage = new Map([['corridaMalucaHighScore', '40']]);
+  const { game, element, change } = createGame([0.5], storage);
+  assert.equal(element('highScore').textContent, 40);
+  element('difficulty').value = 'tranquilo';
+  change('difficulty');
+  assert.equal(element('highScore').textContent, 0);
+  game.startGame();
+  game.setScore(30);
+  game.endGame();
+  assert.equal(storage.get('corridaMalucaHighScore:tranquilo'), '30');
+  assert.equal(storage.get('corridaMalucaHighScore'), '40');
+  element('difficulty').value = 'normal';
+  change('difficulty');
+  assert.equal(element('highScore').textContent, 40);
+});
+
+test('mantém o recorde da sessão se a gravação local falhar', () => {
+  const storage = new Map([['corridaMalucaHighScore', '40']]);
+  const { game, element } = createGame([0.5], storage, true);
+  game.startGame();
+  game.setScore(70);
+  game.endGame();
+  game.startGame();
+  assert.equal(element('highScore').textContent, 70);
+  assert.equal(storage.get('corridaMalucaHighScore'), '40');
+});
+
+test('seletor fica oculto durante a pausa e espaço preserva controles focados', () => {
+  const { game, click, element, keydown } = createGame();
+  game.startGame();
+  let prevented = false;
+  keydown({ code: 'Space', target: { tagName: 'BUTTON' }, preventDefault() { prevented = true; } });
+  assert.equal(prevented, false);
+  assert.equal(game.isPaused(), false);
+  click('btnPause');
+  assert.equal(game.isPaused(), true);
+  assert.equal(element('difficultyPicker').hidden, true);
 });

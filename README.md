@@ -57,6 +57,9 @@ A versão Android está em desenvolvimento na branch `feature/android-corrida-co
 O jogo continua executável no navegador; a nova fase inclui cones, barreiras
 e buracos, além de um layout mais confortável em celulares.
 
+Antes de cada corrida, escolha Tranquilo, Normal ou Desafio. Cada nível guarda
+seu próprio recorde no dispositivo. O recorde anterior permanece no modo Normal.
+
 O projeto usa Capacitor 8 para reaproveitar HTML, CSS e JavaScript como app Android.
 Consulte [o passo a passo do Android Studio](docs/ANDROID.md).
 Ainda não foi gerado um APK/AAB nem publicado na Play Store.
