@@ -1,4 +1,4 @@
-name: Browser Game CI
+name: Corrida Maluca CI
 
 on:
   push:
@@ -16,8 +16,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - name: Validate actual game source and regression tests
-        run: |
-          node --check game.js
-          node --test tests/*.test.js
+          node-version: 22
+      - name: Validar código JavaScript
+        run: npm run check
+      - name: Executar testes de jogabilidade
+        run: npm test
+      - name: Gerar pacote web para Android
+        run: npm run build:web
