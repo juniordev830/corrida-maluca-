@@ -53,7 +53,7 @@ Projeto experimental em desenvolvimento.
 
 ## Android — primeira etapa
 
-A versão Android está em desenvolvimento na branch \`feature/android-corrida-colorida\`.
+A versão Android está em desenvolvimento na branch `feature/android-corrida-colorida`.
 O jogo continua executável no navegador; a nova fase inclui cones, barreiras
 e buracos, além de um layout mais confortável em celulares.
 
