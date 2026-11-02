@@ -59,14 +59,25 @@ for (let i = 0; i < 8; i++) {
 
 const carColors = ['#4a90d9', '#f4a940', '#9b59b6', '#2ecc71', '#e74c3c'];
 
+// Obstáculos de formas diferentes, todos na grade de três faixas.
 function spawnObstacle() {
   const lane = Math.floor(Math.random() * LANES);
+  const chance = Math.random();
+  const kind = chance < 0.5 ? 'car' : chance < 0.7 ? 'cone' : chance < 0.88 ? 'barrier' : 'pothole';
+  const sizes = {
+    car: { w: 46, h: 76 },
+    cone: { w: 38, h: 48 },
+    barrier: { w: 88, h: 38 },
+    pothole: { w: 76, h: 34 }
+  };
+  const { w, h } = sizes[kind];
   obstacles.push({
-    lane: lane,
-    x: laneX(lane),
+    kind,
+    lane,
+    x: lane * laneWidth + (laneWidth - w) / 2,
     y: -100,
-    w: 46,
-    h: 76,
+    w,
+    h,
     color: carColors[Math.floor(Math.random() * carColors.length)]
   });
 }
@@ -120,6 +131,50 @@ function drawRoundedCar(x, y, w, h, color, windowColor) {
   ctx.fillRect(x + w - 2, y + 10, 5, 14);
   ctx.fillRect(x - 3, y + h - 24, 5, 14);
   ctx.fillRect(x + w - 2, y + h - 24, 5, 14);
+  ctx.restore();
+}
+
+
+function drawObstacle(o) {
+  if (o.kind === 'car' || !o.kind) {
+    drawRoundedCar(o.x, o.y, o.w, o.h, o.color);
+    return;
+  }
+  ctx.save();
+  if (o.kind === 'cone') {
+    ctx.fillStyle = '#273249';
+    ctx.fillRect(o.x - 6, o.y + o.h - 9, o.w + 12, 9);
+    ctx.fillStyle = '#ff8e2b';
+    ctx.beginPath();
+    ctx.moveTo(o.x + o.w / 2, o.y);
+    ctx.lineTo(o.x + o.w, o.y + o.h - 9);
+    ctx.lineTo(o.x, o.y + o.h - 9);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#fff4dd';
+    ctx.fillRect(o.x + 10, o.y + o.h * 0.57, o.w - 20, 7);
+  } else if (o.kind === 'barrier') {
+    ctx.fillStyle = '#ffda43';
+    ctx.fillRect(o.x, o.y + 5, o.w, o.h - 10);
+    ctx.fillStyle = '#17233e';
+    for (let i = 6; i < o.w - 3; i += 20) {
+      ctx.fillRect(o.x + i, o.y + 7, 8, o.h - 14);
+    }
+    ctx.fillStyle = '#fff9e5';
+    ctx.fillRect(o.x + 4, o.y + 5, o.w - 8, 3);
+  } else if (o.kind === 'pothole') {
+    ctx.fillStyle = '#1b2334';
+    ctx.beginPath();
+    ctx.ellipse(o.x + o.w / 2, o.y + o.h / 2, o.w / 2, o.h / 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#e0d6f5';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fillStyle = '#353d52';
+    ctx.beginPath();
+    ctx.ellipse(o.x + o.w / 2 - 7, o.y + o.h / 2 - 3, o.w / 4, o.h / 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
   ctx.restore();
 }
 
@@ -189,12 +244,12 @@ function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  grad.addColorStop(0, '#6b7280');
-  grad.addColorStop(1, '#4b5563');
+  grad.addColorStop(0, '#7d86af');
+  grad.addColorStop(1, '#475875');
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  ctx.fillStyle = '#3d4451';
+  ctx.fillStyle = '#24c97e';
   ctx.fillRect(0, 0, 8, canvas.height);
   ctx.fillRect(canvas.width - 8, 0, 8, canvas.height);
 
@@ -222,9 +277,7 @@ function draw() {
     ctx.restore();
   });
 
-  obstacles.forEach(o => {
-    drawRoundedCar(o.x, o.y, o.w, o.h, o.color);
-  });
+  obstacles.forEach(drawObstacle);
 
   if (running) {
     drawRoundedCar(player.x, player.y, player.w, player.h, player.color, 'rgba(200,230,255,0.8)');
