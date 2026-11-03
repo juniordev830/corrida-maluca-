@@ -64,6 +64,7 @@
     color: #fff;
     text-align: center;
     z-index: 20;
+    overflow-y: auto;
   }
 
   #overlay h2 {
@@ -77,6 +78,24 @@
     margin-bottom: 20px;
     max-width: 320px;
     line-height: 1.5;
+  }
+
+  .difficulty-picker {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    font-weight: bold;
+  }
+
+  .difficulty-picker[hidden] { display: none; }
+  .difficulty-picker select {
+    font: inherit;
+    color: #17233e;
+    background: #fff;
+    border: 2px solid #ffe66d;
+    border-radius: 10px;
+    padding: 8px 12px;
   }
 
   button {
@@ -128,3 +147,58 @@
   @media (pointer: coarse) {
     #touchControls { display: flex; }
   }
+
+
+/* Primeira versão Android: tela pequena e controles confortáveis para toque. */
+@media (max-width: 600px) {
+  body {
+    min-height: 100dvh;
+    padding: 8px 8px 16px;
+    justify-content: flex-start;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background: linear-gradient(160deg, #9ce8ff 0%, #b3ffcf 55%, #ffe99a 100%);
+  }
+
+  h1 {
+    font-size: clamp(1.5rem, 6vw, 2rem);
+    margin-bottom: 6px;
+  }
+
+  #gameContainer {
+    width: min(480px, 96vw);
+    height: min(68dvh, 128vw);
+    max-height: none;
+    border-width: 4px;
+  }
+
+  #overlay { padding: 12px; }
+  #overlay h2 { font-size: 1.55rem; }
+  #overlay p { font-size: 0.95rem; margin-bottom: 10px; }
+  #controls { display: none; }
+
+  #touchControls {
+    display: flex;
+    width: min(480px, 96vw);
+    margin-top: 8px;
+    gap: 12px;
+  }
+
+  #touchControls button {
+    flex: 1;
+    min-width: 0;
+    width: auto;
+    height: 52px;
+    padding: 8px;
+    touch-action: manipulation;
+  }
+  canvas { touch-action: pan-y; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button { transition: none; }
+}
+
+@media (max-height: 480px) {
+  #overlay { justify-content: flex-start; padding: 10px; }
+}

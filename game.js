@@ -31,7 +31,13 @@ let particles = [];
 let roadLines = [];
 let score = 0;
 let memoryStore = {};
-let highScore = Number.parseInt(localStorage_get('corridaMalucaHighScore'), 10) || 0;
+const DIFFICULTIES = {
+  tranquilo: { baseSpeed: 3, spawnInterval: 70, minInterval: 35 },
+  normal: { baseSpeed: 4, spawnInterval: 55, minInterval: 26 },
+  desafio: { baseSpeed: 5, spawnInterval: 46, minInterval: 21 }
+};
+let difficulty = 'normal';
+let highScore = readHighScore(difficulty);
 let speed = 4;
 let baseSpeed = 4;
 let running = false;
@@ -43,15 +49,34 @@ let starTimer = 0;
 
 // Mantém o jogo funcional mesmo quando o navegador bloqueia o armazenamento.
 function localStorage_get(key) {
-  try { return window.localStorage.getItem(key) ?? memoryStore[key] ?? 0; }
-  catch { return memoryStore[key] ?? 0; }
+  if (Object.prototype.hasOwnProperty.call(memoryStore, key)) return memoryStore[key];
+  try { return window.localStorage.getItem(key) ?? 0; }
+  catch { return 0; }
 }
 function localStorage_set(key, val) {
   memoryStore[key] = val;
   try { window.localStorage.setItem(key, String(val)); } catch { /* fallback em memória */ }
 }
 
+function highScoreKey(mode) {
+  // O recorde já salvo antes dos níveis permanece associado ao modo normal.
+  return mode === 'normal' ? 'corridaMalucaHighScore' : 'corridaMalucaHighScore:' + mode;
+}
+function readHighScore(mode) {
+  const value = Number.parseInt(localStorage_get(highScoreKey(mode)), 10);
+  return Number.isSafeInteger(value) && value >= 0 ? value : 0;
+}
+function selectedDifficulty() {
+  const selected = document.getElementById('difficulty').value;
+  return Object.prototype.hasOwnProperty.call(DIFFICULTIES, selected) ? selected : 'normal';
+}
+
 document.getElementById('highScore').textContent = highScore;
+document.getElementById('difficulty').addEventListener('change', () => {
+  if (running) return;
+  highScore = readHighScore(selectedDifficulty());
+  document.getElementById('highScore').textContent = highScore;
+});
 
 for (let i = 0; i < 8; i++) {
   roadLines.push({ y: i * 90 });
@@ -59,14 +84,25 @@ for (let i = 0; i < 8; i++) {
 
 const carColors = ['#4a90d9', '#f4a940', '#9b59b6', '#2ecc71', '#e74c3c'];
 
+// Obstáculos de formas diferentes, todos na grade de três faixas.
 function spawnObstacle() {
   const lane = Math.floor(Math.random() * LANES);
+  const chance = Math.random();
+  const kind = chance < 0.5 ? 'car' : chance < 0.7 ? 'cone' : chance < 0.88 ? 'barrier' : 'pothole';
+  const sizes = {
+    car: { w: 46, h: 76 },
+    cone: { w: 38, h: 48 },
+    barrier: { w: 88, h: 38 },
+    pothole: { w: 76, h: 34 }
+  };
+  const { w, h } = sizes[kind];
   obstacles.push({
-    lane: lane,
-    x: laneX(lane),
+    kind,
+    lane,
+    x: lane * laneWidth + (laneWidth - w) / 2,
     y: -100,
-    w: 46,
-    h: 76,
+    w,
+    h,
     color: carColors[Math.floor(Math.random() * carColors.length)]
   });
 }
@@ -123,6 +159,50 @@ function drawRoundedCar(x, y, w, h, color, windowColor) {
   ctx.restore();
 }
 
+
+function drawObstacle(o) {
+  if (o.kind === 'car' || !o.kind) {
+    drawRoundedCar(o.x, o.y, o.w, o.h, o.color);
+    return;
+  }
+  ctx.save();
+  if (o.kind === 'cone') {
+    ctx.fillStyle = '#273249';
+    ctx.fillRect(o.x - 6, o.y + o.h - 9, o.w + 12, 9);
+    ctx.fillStyle = '#ff8e2b';
+    ctx.beginPath();
+    ctx.moveTo(o.x + o.w / 2, o.y);
+    ctx.lineTo(o.x + o.w, o.y + o.h - 9);
+    ctx.lineTo(o.x, o.y + o.h - 9);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#fff4dd';
+    ctx.fillRect(o.x + 10, o.y + o.h * 0.57, o.w - 20, 7);
+  } else if (o.kind === 'barrier') {
+    ctx.fillStyle = '#ffda43';
+    ctx.fillRect(o.x, o.y + 5, o.w, o.h - 10);
+    ctx.fillStyle = '#17233e';
+    for (let i = 6; i < o.w - 3; i += 20) {
+      ctx.fillRect(o.x + i, o.y + 7, 8, o.h - 14);
+    }
+    ctx.fillStyle = '#fff9e5';
+    ctx.fillRect(o.x + 4, o.y + 5, o.w - 8, 3);
+  } else if (o.kind === 'pothole') {
+    ctx.fillStyle = '#1b2334';
+    ctx.beginPath();
+    ctx.ellipse(o.x + o.w / 2, o.y + o.h / 2, o.w / 2, o.h / 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#e0d6f5';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fillStyle = '#353d52';
+    ctx.beginPath();
+    ctx.ellipse(o.x + o.w / 2 - 7, o.y + o.h / 2 - 3, o.w / 4, o.h / 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
 function update() {
   if (!running || paused || gameOverFlag) return;
   frame++;
@@ -136,7 +216,8 @@ function update() {
   });
 
   spawnTimer++;
-  const spawnInterval = Math.max(55 - Math.floor(score / 8), 26);
+  const settings = DIFFICULTIES[difficulty];
+  const spawnInterval = Math.max(settings.spawnInterval - Math.floor(score / 8), settings.minInterval);
   if (spawnTimer > spawnInterval) {
     spawnTimer = 0;
     spawnObstacle();
@@ -189,12 +270,12 @@ function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  grad.addColorStop(0, '#6b7280');
-  grad.addColorStop(1, '#4b5563');
+  grad.addColorStop(0, '#7d86af');
+  grad.addColorStop(1, '#475875');
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  ctx.fillStyle = '#3d4451';
+  ctx.fillStyle = '#24c97e';
   ctx.fillRect(0, 0, 8, canvas.height);
   ctx.fillRect(canvas.width - 8, 0, 8, canvas.height);
 
@@ -222,9 +303,7 @@ function draw() {
     ctx.restore();
   });
 
-  obstacles.forEach(o => {
-    drawRoundedCar(o.x, o.y, o.w, o.h, o.color);
-  });
+  obstacles.forEach(drawObstacle);
 
   if (running) {
     drawRoundedCar(player.x, player.y, player.w, player.h, player.color, 'rgba(200,230,255,0.8)');
@@ -264,6 +343,10 @@ function drawStar(cx, cy, spikes, outerR, innerR) {
 const STEP_MS = 1000 / 60;
 let previousTimestamp = null;
 let accumulatedMs = 0;
+function resetClock() {
+  previousTimestamp = null;
+  accumulatedMs = 0;
+}
 function loop(timestamp) {
   if (Number.isFinite(timestamp)) {
     if (previousTimestamp !== null) accumulatedMs += Math.min(100, Math.max(0, timestamp - previousTimestamp));
@@ -278,6 +361,12 @@ function loop(timestamp) {
 }
 
 function startGame() {
+  resetClock();
+  difficulty = selectedDifficulty();
+  baseSpeed = DIFFICULTIES[difficulty].baseSpeed;
+  highScore = readHighScore(difficulty);
+  document.getElementById('highScore').textContent = highScore;
+  document.getElementById('difficultyPicker').hidden = false;
   obstacles = [];
   stars = [];
   particles = [];
@@ -302,13 +391,14 @@ function endGame() {
   const finalScore = Math.floor(score);
   if (finalScore > highScore) {
     highScore = finalScore;
-    localStorage_set('corridaMalucaHighScore', highScore);
+    localStorage_set(highScoreKey(difficulty), highScore);
     document.getElementById('highScore').textContent = highScore;
   }
   setTimeout(() => {
     document.getElementById('overlayTitle').textContent = 'Bateu! 💥';
     document.getElementById('overlayText').textContent = 'Pontuação final: ' + finalScore + '. Toque em jogar de novo para tentar bater o recorde!';
     document.getElementById('startBtn').textContent = 'Jogar de novo';
+    document.getElementById('difficultyPicker').hidden = false;
     document.getElementById('overlay').style.display = 'flex';
   }, 400);
 }
@@ -316,6 +406,8 @@ function endGame() {
 function togglePause() {
   if (!running || gameOverFlag) return;
   paused = !paused;
+  resetClock();
+  document.getElementById('difficultyPicker').hidden = paused;
   document.getElementById('overlay').style.display = paused ? 'flex' : 'none';
   if (paused) {
     document.getElementById('overlayTitle').textContent = 'Pausado';
@@ -327,6 +419,7 @@ function togglePause() {
 document.getElementById('startBtn').addEventListener('click', () => {
   if (paused) {
     paused = false;
+    resetClock();
     document.getElementById('overlay').style.display = 'none';
     document.getElementById('startBtn').textContent = 'Continuar';
   } else {
@@ -336,8 +429,11 @@ document.getElementById('startBtn').addEventListener('click', () => {
 
 document.addEventListener('keydown', (e) => {
   if (e.code === 'Space') {
-    e.preventDefault();
-    if (running && !gameOverFlag) togglePause();
+    const interactive = ['BUTTON', 'SELECT', 'INPUT', 'TEXTAREA'].includes(e.target?.tagName);
+    if (running && !gameOverFlag && !interactive) {
+      e.preventDefault();
+      togglePause();
+    }
     return;
   }
 
@@ -360,6 +456,11 @@ document.getElementById('btnRight').addEventListener('click', () => {
   if (running && !paused && !gameOverFlag) player.lane = Math.min(LANES - 1, player.lane + 1);
 });
 document.getElementById('btnPause').addEventListener('click', togglePause);
+
+// No celular, preserve a partida quando o jogador muda de aplicativo ou aba.
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && running && !paused && !gameOverFlag) togglePause();
+});
 
 let touchStartX = null;
 canvas.addEventListener('touchstart', (e) => {

@@ -1,0 +1,21 @@
+{
+  "name": "corrida-maluca-android",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Jogo arcade colorido para navegador e Android",
+  "scripts": {
+    "build:web": "node scripts/build-web.mjs",
+    "check": "node --check game.js && node --check scripts/build-web.mjs",
+    "android:add": "npm run build:web && cap add android",
+    "android:sync": "npm run build:web && cap sync android",
+    "android:open": "cap open android",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.6.0",
+    "@capacitor/core": "8.6.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.6.0"
+  }
+}
