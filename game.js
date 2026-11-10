@@ -437,6 +437,11 @@ document.addEventListener('keydown', (e) => {
     return;
   }
 
+  // Do not hijack arrow keys while a form control is focused.
+  // This also preserves native keyboard interaction with the difficulty selector.
+  const interactive = ['BUTTON', 'SELECT', 'INPUT', 'TEXTAREA'].includes(e.target?.tagName);
+  if (interactive || e.altKey || e.ctrlKey || e.metaKey) return;
+
   // Ignore steering while the start/game-over overlay is visible or the game is paused.
   if (!running || paused || gameOverFlag) return;
 
@@ -464,6 +469,10 @@ document.addEventListener('visibilitychange', () => {
 
 let touchStartX = null;
 canvas.addEventListener('touchstart', (e) => {
+  if (e.touches.length !== 1) {
+    touchStartX = null;
+    return;
+  }
   touchStartX = e.touches[0].clientX;
 });
 canvas.addEventListener('touchend', (e) => {
