@@ -64,3 +64,7 @@ O projeto usa Capacitor 8 para reaproveitar HTML, CSS e JavaScript como app Andr
 Consulte [o passo a passo do Android Studio](docs/ANDROID.md).
 O GitHub Actions gera um APK de depuração para testes; ele ainda não foi
 validado em aparelhos reais. Não há AAB de lançamento nem publicação na Play Store.
+
+## Validação e manutenção
+
+Para revisar alterações neste projeto, consulte o [guia técnico de validação](docs/GUIA_DE_VALIDACAO.md), com comandos, cenários de regressão e próximos incrementos.
